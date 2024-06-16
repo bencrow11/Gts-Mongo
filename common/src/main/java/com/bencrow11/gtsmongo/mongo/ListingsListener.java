@@ -17,6 +17,7 @@ import org.pokesplash.gts.history.HistoryItem;
 import org.pokesplash.gts.history.ItemHistoryItem;
 import org.pokesplash.gts.history.PokemonHistoryItem;
 import org.pokesplash.gts.util.Deserializer;
+import org.pokesplash.gts.util.Utils;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -69,6 +70,29 @@ public class ListingsListener implements Runnable {
                                     gson.fromJson(addedDocument.toJson(), ItemListing.class);
 
                             Gts.listings.addListing(addedListing);
+
+                            if (Gts.config.isBroadcastListings()) {
+
+                                if (addedListing.isPokemon()) {
+
+                                    PokemonListing pokemonListing = gson.fromJson(addedDocument.toJson(), PokemonListing.class);
+
+                                    Utils.broadcastClickable(Utils.formatPlaceholders(Gts.language.getNewListingBroadcast(),
+                                                    0, pokemonListing.getListing().getDisplayName().getString(),
+                                                    pokemonListing.getSellerName(), null),
+                                            "/gts " + pokemonListing.getId());
+                                } else {
+
+                                    ItemListing itemListing = gson.fromJson(addedDocument.toJson(), ItemListing.class);
+
+                                    Utils.broadcastClickable(Utils.formatPlaceholders(Gts.language.getNewListingBroadcast(),
+                                                    0, itemListing.getListing().getDisplayName().getString(),
+                                                    itemListing.getSellerName(), null),
+                                            "/gts " + itemListing.getId());
+                                }
+
+
+                            }
                         }
 
                         break;
