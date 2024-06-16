@@ -1,19 +1,11 @@
 package com.bencrow11.gtsmongo;
 
+import com.bencrow11.gtsmongo.hooks.MongoHistoryItemImp;
+import com.bencrow11.gtsmongo.hooks.MongoHistoryProvider;
 import com.bencrow11.gtsmongo.hooks.MongoListingImp;
 import com.bencrow11.gtsmongo.hooks.MongoListingProvider;
-import com.bencrow11.gtsmongo.types.Collection;
-import com.google.gson.Gson;
-import com.mongodb.client.MongoDatabase;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import org.bson.Document;
-import org.pokesplash.gts.Listing.ItemListing;
-import org.pokesplash.gts.api.provider.ListingAPI;
-import org.pokesplash.gts.api.provider.ListingsProviderAPI;
-import org.pokesplash.gts.api.provider.Priority;
+import org.pokesplash.gts.api.provider.*;
 
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,5 +35,7 @@ public class GtsMongo
 
 		ListingsProviderAPI.add(Priority.LOW, new MongoListingProvider());
 		ListingAPI.add(Priority.LOW, new MongoListingImp());
+		HistoryProviderAPI.add(Priority.LOW, new MongoHistoryProvider());
+		HistoryAPI.add(Priority.LOW, new MongoHistoryItemImp());
 	}
 }
