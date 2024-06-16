@@ -1,0 +1,88 @@
+package com.bencrow11.gtsmongo.mongo;
+
+import com.bencrow11.gtsmongo.GtsMongo;
+import com.bencrow11.gtsmongo.types.Collection;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.mongodb.client.ChangeStreamIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
+import org.pokesplash.gts.Gts;
+import org.pokesplash.gts.Listing.ItemListing;
+import org.pokesplash.gts.Listing.Listing;
+import org.pokesplash.gts.Listing.PokemonListing;
+import org.pokesplash.gts.history.HistoryItem;
+import org.pokesplash.gts.history.ItemHistoryItem;
+import org.pokesplash.gts.history.PokemonHistoryItem;
+import org.pokesplash.gts.util.Deserializer;
+
+import java.util.Objects;
+import java.util.UUID;
+
+public class ListingsListener implements Runnable {
+    @Override
+    public void run() {
+        MongoClient mongoClient = MongoClients.create(GtsMongo.mongo.settings);
+
+        MongoCollection<Document> listings = GtsMongo.mongo.getCollection(mongoClient, Collection.LISTING);
+
+        ChangeStreamIterable<Document> cursor = listings.watch();
+
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(Listing.class, new Deserializer(PokemonListing.class));
+        builder.registerTypeAdapter(Listing.class, new Deserializer(ItemListing.class));
+        Gson gson = builder.create();
+
+        cursor.forEach(e -> {
+
+            try {
+                String id = e.getDocumentKey().getString("_id").getValue();
+
+                switch (Objects.requireNonNull(e.getOperationType())) {
+                    case DELETE:
+
+                        Document deletedDocument = GtsMongo.mongo.get(Collection.LISTING, UUID.fromString(id));
+
+                        Listing deletedListing = Gts.listings.findListingById(UUID.fromString(id));
+
+                        // If the document has been deleted from db but not from memory
+                        if (deletedDocument == null && deletedListing != null) {
+                            Gts.listings.removeListing(deletedListing);
+                        }
+
+                        break;
+
+                    case INSERT:
+
+                        Document addedDocument = GtsMongo.mongo.get(Collection.LISTING, UUID.fromString(id));
+
+                        Listing addedListing = Gts.listings.findListingById(UUID.fromString(id));
+
+                        // If the document has been added to db but not in memory.
+                        if (addedDocument != null && addedListing == null) {
+
+                            addedListing  = gson.fromJson(addedDocument.toJson(), Listing.class);
+
+                            addedListing = addedListing.isPokemon() ? gson.fromJson(addedDocument.toJson(), PokemonListing.class) :
+                                    gson.fromJson(addedDocument.toJson(), ItemListing.class);
+
+                            Gts.listings.addListing(addedListing);
+                        }
+
+                        break;
+
+                    default:
+
+                        Gts.LOGGER.error("Operation type " + e.getOperationTypeString() +
+                                " is not supported for collection: " + GtsMongo.listingCollection);
+
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
+}
+

@@ -17,7 +17,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class MongoImp {
-    private final MongoClientSettings settings;
+    public final MongoClientSettings settings;
 
 
     public MongoImp(String username, String password, String host) {
@@ -36,19 +36,6 @@ public class MongoImp {
                 .build();
     }
 
-    public void test() {
-
-        MongoClient mongoClient = MongoClients.create(settings);
-
-        MongoCollection<Document> listings = getCollection(mongoClient, Collection.LISTING);
-
-        ChangeStreamIterable<Document> cursor = listings.watch();
-
-        cursor.forEach(e -> {
-            System.out.println(e.getOperationTypeString());
-        });
-    }
-
     public void add(String json, UUID id, Collection type) {
 
         MongoClient mongoClient = MongoClients.create(settings);
@@ -56,12 +43,21 @@ public class MongoImp {
         MongoCollection<Document> collection = getCollection(mongoClient, type);
 
         Document document = Document.parse(json);
+        document.append("_id", id.toString());
 
         MongoCursor<Document> iterator = collection.find(Filters.eq("id", id.toString())).iterator();
 
         if (!iterator.hasNext()) {
             collection.insertOne(document);
         }
+    }
+
+    public Document get(Collection type, UUID id) {
+        MongoClient mongoClient = MongoClients.create(settings);
+
+        MongoCollection<Document> collection = getCollection(mongoClient, type);
+
+        return collection.find(Filters.eq("id", id.toString())).first();
     }
 
     public void getAll(Collection type, Consumer<Document> consumer) {
@@ -82,11 +78,21 @@ public class MongoImp {
         collection.deleteMany(Filters.eq("id", id.toString()));
     }
 
-    private MongoCollection<Document> getCollection(MongoClient client, Collection collection) {
+    public MongoCollection<Document> getCollection(MongoClient client, Collection collection) {
         MongoDatabase database = client.getDatabase(GtsMongo.db);
 
         return database.getCollection(
                 collection.equals(Collection.LISTING) ? GtsMongo.listingCollection : GtsMongo.historyCollection
         );
+    }
+
+    public void runStreams() {
+        Runnable listingsListener = new ListingsListener();
+        Thread listingsThread = new Thread(listingsListener, "mongo-listings-listener");
+        listingsThread.start();
+
+        Runnable historyListener = new HistoryListener();
+        Thread historyThread = new Thread(historyListener, "mongo-history-listener");
+        historyThread.start();
     }
 }

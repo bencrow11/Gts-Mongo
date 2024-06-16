@@ -4,6 +4,7 @@ import com.bencrow11.gtsmongo.hooks.MongoHistoryItemImp;
 import com.bencrow11.gtsmongo.hooks.MongoHistoryProvider;
 import com.bencrow11.gtsmongo.hooks.MongoListingImp;
 import com.bencrow11.gtsmongo.hooks.MongoListingProvider;
+import com.bencrow11.gtsmongo.mongo.ListingsListener;
 import com.bencrow11.gtsmongo.mongo.MongoImp;
 import org.pokesplash.gts.api.provider.*;
 
@@ -30,8 +31,10 @@ public class GtsMongo
 		Logger.getLogger("org.mongodb.driver.uri").setLevel(Level.SEVERE);
 		Logger.getLogger("org.mongodb.driver.management").setLevel(Level.SEVERE);
 
-//		mongo.test();
+		reload();
+	}
 
+	public static void reload() {
 		config.init();
 
 		mongo = new MongoImp(config.getUsername(), config.getPassword(), config.getHost());
@@ -41,5 +44,9 @@ public class GtsMongo
 		ListingAPI.add(Priority.LOW, new MongoListingImp());
 		HistoryProviderAPI.add(Priority.LOW, new MongoHistoryProvider());
 		HistoryAPI.add(Priority.LOW, new MongoHistoryItemImp());
+
+		if (config.isUseStreams()) {
+			mongo.runStreams();
+		}
 	}
 }
