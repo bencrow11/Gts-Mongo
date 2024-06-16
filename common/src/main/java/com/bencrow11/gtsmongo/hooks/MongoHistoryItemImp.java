@@ -14,6 +14,6 @@ public class MongoHistoryItemImp implements HistoryInterface {
 
         Gson gson = new Gson();
 
-        GtsMongo.mongo.add(gson.toJson(listing), Collection.HISTORY);
+        GtsMongo.mongo.add(gson.toJson(listing), listing.getId(), Collection.HISTORY);
     }
 }

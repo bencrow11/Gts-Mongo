@@ -17,16 +17,14 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class MongoImp {
-    private final String connectionString;
-    private final CodecRegistry codecRegistry;
     private final MongoClientSettings settings;
 
 
-    public MongoImp(String username, String password, String clusterName) {
-        connectionString = "mongodb+srv://" + username + ":" + password + "@" + clusterName + "/";
+    public MongoImp(String username, String password, String host) {
+        String connectionString = "mongodb+srv://" + username + ":" + password + "@" + host + "/";
 
         CodecProvider codecProvider = PojoCodecProvider.builder().automatic(true).build();
-        codecRegistry = CodecRegistries.fromRegistries(
+        CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
                 MongoClientSettings.getDefaultCodecRegistry(),
                 CodecRegistries.fromProviders(codecProvider)
         );
@@ -51,7 +49,7 @@ public class MongoImp {
         });
     }
 
-    public void add(String json, Collection type) {
+    public void add(String json, UUID id, Collection type) {
 
         MongoClient mongoClient = MongoClients.create(settings);
 
@@ -59,7 +57,11 @@ public class MongoImp {
 
         Document document = Document.parse(json);
 
-        collection.insertOne(document);
+        MongoCursor<Document> iterator = collection.find(Filters.eq("id", id.toString())).iterator();
+
+        if (!iterator.hasNext()) {
+            collection.insertOne(document);
+        }
     }
 
     public void getAll(Collection type, Consumer<Document> consumer) {
@@ -77,7 +79,7 @@ public class MongoImp {
 
         MongoCollection<Document> collection = getCollection(mongoClient, type);
 
-        collection.deleteOne(Filters.eq("id", id.toString()));
+        collection.deleteMany(Filters.eq("id", id.toString()));
     }
 
     private MongoCollection<Document> getCollection(MongoClient client, Collection collection) {

@@ -12,7 +12,7 @@ public class MongoListingImp implements ListingInterface {
 
         Gson gson = new Gson();
 
-        GtsMongo.mongo.add(gson.toJson(listing), Collection.LISTING);
+        GtsMongo.mongo.add(gson.toJson(listing), listing.getId(), Collection.LISTING);
     }
 
     @Override

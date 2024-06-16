@@ -17,6 +17,7 @@ public class GtsMongo
 	public static final String db = "gts";
 	public static final String listingCollection = "listings";
 	public static final String historyCollection = "history";
+	public static Config config = new Config();
 
 	public static void init() {
 		Logger.getLogger("org.mongodb.driver.client").setLevel(Level.SEVERE);
@@ -29,9 +30,11 @@ public class GtsMongo
 		Logger.getLogger("org.mongodb.driver.uri").setLevel(Level.SEVERE);
 		Logger.getLogger("org.mongodb.driver.management").setLevel(Level.SEVERE);
 
-		mongo = new MongoImp("bencrow11", "7J4DPpsg8w8tLhTQ",
-				"testcluster.icb0dld.mongodb.net");
 //		mongo.test();
+
+		config.init();
+
+		mongo = new MongoImp(config.getUsername(), config.getPassword(), config.getHost());
 
 
 		ListingsProviderAPI.add(Priority.LOW, new MongoListingProvider());
