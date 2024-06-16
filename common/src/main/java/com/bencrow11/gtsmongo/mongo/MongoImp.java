@@ -16,10 +16,19 @@ import org.bson.codecs.pojo.PojoCodecProvider;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+/**
+ * Class used to implement methods to read / write to the mongoDB database.
+ */
 public class MongoImp {
-    public final MongoClientSettings settings;
+    public final MongoClientSettings settings; // Save the settings.
 
 
+    /**
+     * Constructor that takes the db details to form a connection.
+     * @param username The username to log into the db.
+     * @param password The password for the username.
+     * @param host The host address of the database.
+     */
     public MongoImp(String username, String password, String host) {
         String connectionString = "mongodb+srv://" + username + ":" + password + "@" + host + "/";
 
@@ -36,6 +45,12 @@ public class MongoImp {
                 .build();
     }
 
+    /**
+     * Adds a JSON object to the database, if the given id doesn't already exist.
+     * @param json The JSON object to add.
+     * @param id The ID to check doesn't exist.
+     * @param type The collection to add the object to.
+     */
     public void add(String json, UUID id, Collection type) {
 
         MongoClient mongoClient = MongoClients.create(settings);
@@ -52,6 +67,12 @@ public class MongoImp {
         }
     }
 
+    /**
+     * Gets a document from db using the collection and id specified.
+     * @param type The collection to fetch from.
+     * @param id The ID of the document to fetch.
+     * @return The document found.
+     */
     public Document get(Collection type, UUID id) {
         MongoClient mongoClient = MongoClients.create(settings);
 
@@ -60,6 +81,11 @@ public class MongoImp {
         return collection.find(Filters.eq("id", id.toString())).first();
     }
 
+    /**
+     * Fetches all documents from the given collection.
+     * @param type The collection to fetch the documents from.
+     * @param consumer Callback to process the documents once fetched.
+     */
     public void getAll(Collection type, Consumer<Document> consumer) {
 
         MongoClient mongoClient = MongoClients.create(settings);
@@ -69,6 +95,11 @@ public class MongoImp {
         collection.find().forEach(consumer);
     }
 
+    /**
+     * Deletes an object with a given id from a given collection.
+     * @param id The ID of the object to delete.
+     * @param type The collection to delete the object from.
+     */
     public void delete(UUID id, Collection type) {
 
         MongoClient mongoClient = MongoClients.create(settings);
@@ -78,6 +109,12 @@ public class MongoImp {
         collection.deleteMany(Filters.eq("id", id.toString()));
     }
 
+    /**
+     * Fetches the given collection.
+     * @param client The mongoclient used to fetch the collection.
+     * @param collection The collection to fetch.
+     * @return The collection of documents.
+     */
     public MongoCollection<Document> getCollection(MongoClient client, Collection collection) {
         MongoDatabase database = client.getDatabase(GtsMongo.db);
 
@@ -86,6 +123,9 @@ public class MongoImp {
         );
     }
 
+    /**
+     * Runs the listeners to sync servers.
+     */
     public void runStreams() {
         Runnable listingsListener = new ListingsListener();
         Thread listingsThread = new Thread(listingsListener, "mongo-listings-listener");

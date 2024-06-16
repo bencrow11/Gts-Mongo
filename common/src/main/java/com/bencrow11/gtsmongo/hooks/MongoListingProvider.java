@@ -13,6 +13,9 @@ import org.pokesplash.gts.util.Deserializer;
 
 import java.util.Date;
 
+/**
+ * Implementation of listing provider that overrides method to read listings from db rather than file.
+ */
 public class MongoListingProvider extends ListingsProvider {
     @Override
     public void init() {

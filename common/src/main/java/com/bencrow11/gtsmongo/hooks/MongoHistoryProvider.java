@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * Implementation of history provider to read files from database rather than file.
+ */
 public class MongoHistoryProvider extends HistoryProvider {
     @Override
     public void init() {

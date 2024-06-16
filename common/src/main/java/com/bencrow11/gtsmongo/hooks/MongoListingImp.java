@@ -6,6 +6,9 @@ import com.google.gson.Gson;
 import org.pokesplash.gts.Listing.Listing;
 import org.pokesplash.gts.api.provider.ListingInterface;
 
+/**
+ * Implementation for listings to write and delete from db instead of file.
+ */
 public class MongoListingImp implements ListingInterface {
     @Override
     public void write(Listing listing) {

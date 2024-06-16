@@ -13,15 +13,15 @@ import org.pokesplash.gts.Gts;
 import org.pokesplash.gts.Listing.ItemListing;
 import org.pokesplash.gts.Listing.Listing;
 import org.pokesplash.gts.Listing.PokemonListing;
-import org.pokesplash.gts.history.HistoryItem;
-import org.pokesplash.gts.history.ItemHistoryItem;
-import org.pokesplash.gts.history.PokemonHistoryItem;
 import org.pokesplash.gts.util.Deserializer;
 import org.pokesplash.gts.util.Utils;
 
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Listener to sync listings across servers.
+ */
 public class ListingsListener implements Runnable {
     @Override
     public void run() {
@@ -39,8 +39,10 @@ public class ListingsListener implements Runnable {
         cursor.forEach(e -> {
 
             try {
+                // Get the db id of the listing.
                 String id = e.getDocumentKey().getString("_id").getValue();
 
+                // Switch depending if the operation was a delete or insert.
                 switch (Objects.requireNonNull(e.getOperationType())) {
                     case DELETE:
 
@@ -71,6 +73,7 @@ public class ListingsListener implements Runnable {
 
                             Gts.listings.addListing(addedListing);
 
+                            // Broadcast the new listing on the server.
                             if (Gts.config.isBroadcastListings()) {
 
                                 if (addedListing.isPokemon()) {

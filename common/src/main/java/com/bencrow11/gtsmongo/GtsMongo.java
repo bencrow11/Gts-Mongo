@@ -4,7 +4,6 @@ import com.bencrow11.gtsmongo.hooks.MongoHistoryItemImp;
 import com.bencrow11.gtsmongo.hooks.MongoHistoryProvider;
 import com.bencrow11.gtsmongo.hooks.MongoListingImp;
 import com.bencrow11.gtsmongo.hooks.MongoListingProvider;
-import com.bencrow11.gtsmongo.mongo.ListingsListener;
 import com.bencrow11.gtsmongo.mongo.MongoImp;
 import org.pokesplash.gts.api.provider.*;
 

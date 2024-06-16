@@ -11,9 +11,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.changestream.OperationType;
 import org.bson.Document;
 import org.pokesplash.gts.Gts;
-import org.pokesplash.gts.Listing.ItemListing;
-import org.pokesplash.gts.Listing.Listing;
-import org.pokesplash.gts.Listing.PokemonListing;
 import org.pokesplash.gts.history.HistoryItem;
 import org.pokesplash.gts.history.ItemHistoryItem;
 import org.pokesplash.gts.history.PlayerHistory;
@@ -23,6 +20,9 @@ import org.pokesplash.gts.util.Deserializer;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Listener used to sync the history across servers.
+ */
 public class HistoryListener implements Runnable {
     @Override
     public void run() {
@@ -40,14 +40,19 @@ public class HistoryListener implements Runnable {
         cursor.forEach(e -> {
 
             try {
+                // Gets the id of the db entry.
                 String id = e.getDocumentKey().getString("_id").getValue();
 
+                // If the operation was an insert.
                 if (Objects.requireNonNull(e.getOperationType()).equals(OperationType.INSERT)) {
 
+                    // Fetch the document.
                     Document document = GtsMongo.mongo.get(Collection.HISTORY, UUID.fromString(id));
 
+                    // Look for the history item in memory.
                     HistoryItem historyItem = Gts.history.findHistoryById(UUID.fromString(id));
 
+                    // If the document is in the database, but not in memory, add it.
                     if (document != null && historyItem == null) {
 
                         historyItem  = gson.fromJson(document.toJson(), HistoryItem.class);
