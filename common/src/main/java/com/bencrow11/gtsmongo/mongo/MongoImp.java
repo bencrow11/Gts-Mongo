@@ -1,21 +1,17 @@
-package com.bencrow11.gtsmongo;
+package com.bencrow11.gtsmongo.mongo;
 
+import com.bencrow11.gtsmongo.GtsMongo;
 import com.bencrow11.gtsmongo.types.Collection;
-import com.google.gson.Gson;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoQueryException;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
-import org.pokesplash.gts.Listing.ItemListing;
-import org.pokesplash.gts.Listing.Listing;
 
 import java.util.UUID;
 import java.util.function.Consumer;
