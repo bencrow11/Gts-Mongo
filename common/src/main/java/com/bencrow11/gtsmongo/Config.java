@@ -10,18 +10,14 @@ import java.util.concurrent.CompletableFuture;
  * Config file.
  */
 public class Config {
-    private String username; // DB username
-    private String password; // DB password
-    private String host; // DB host string
+    private String connectionString; // DB connection URI
     private boolean useStreams; // Should the mod use change streams
 
     /**
      * Constructor to create a default config file.
      */
     public Config() {
-        username = "USERNAME";
-        password = "PASSWORD";
-        host = "DB_NAME.tgjug9y.mongodb.net";
+        connectionString = "mongodb://localhost:27017";
         useStreams = true;
     }
 
@@ -33,9 +29,7 @@ public class Config {
                 el -> {
                     Gson gson = Utils.newGson();
                     Config cfg = gson.fromJson(el, Config.class);
-                    username = cfg.getUsername();
-                    password = cfg.getPassword();
-                    host = cfg.getHost();
+                    connectionString = cfg.getConnectionString();
                     useStreams = cfg.isUseStreams();
                 });
 
@@ -61,20 +55,14 @@ public class Config {
         return Utils.writeFileAsync("/config/gtsmongo/", "config.json", data);
     }
 
+
+
     /**
      * Getters
      */
 
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getHost() {
-        return host;
+    public String getConnectionString() {
+        return connectionString;
     }
 
     public boolean isUseStreams() {

@@ -36,7 +36,7 @@ public class GtsMongo
 	public static void reload() {
 		config.init();
 
-		mongo = new MongoImp(config.getUsername(), config.getPassword(), config.getHost());
+		mongo = new MongoImp(config.getConnectionString());
 
 
 		ListingsProviderAPI.add(Priority.LOW, new MongoListingProvider());

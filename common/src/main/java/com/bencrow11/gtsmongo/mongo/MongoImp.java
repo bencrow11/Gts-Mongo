@@ -24,14 +24,10 @@ public class MongoImp {
 
 
     /**
-     * Constructor that takes the db details to form a connection.
-     * @param username The username to log into the db.
-     * @param password The password for the username.
-     * @param host The host address of the database.
+     * Constructor to connect to the database.
+     * @param connectionString The connection string to access the db.
      */
-    public MongoImp(String username, String password, String host) {
-        String connectionString = "mongodb+srv://" + username + ":" + password + "@" + host + "/";
-
+    public MongoImp(String connectionString) {
         CodecProvider codecProvider = PojoCodecProvider.builder().automatic(true).build();
         CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
                 MongoClientSettings.getDefaultCodecRegistry(),
