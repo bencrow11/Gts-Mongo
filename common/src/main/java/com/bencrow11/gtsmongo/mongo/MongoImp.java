@@ -4,6 +4,8 @@ import com.bencrow11.gtsmongo.GtsMongo;
 import com.bencrow11.gtsmongo.types.Collection;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
@@ -13,6 +15,7 @@ import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -20,25 +23,47 @@ import java.util.function.Consumer;
  * Class used to implement methods to read / write to the mongoDB database.
  */
 public class MongoImp {
-    public final MongoClientSettings settings; // Save the settings.
+    private final MongoClient mongoClient;
+    private final MongoDatabase mongoDatabase;
 
 
     /**
-     * Constructor to connect to the database.
-     * @param connectionString The connection string to access the db.
+     * Constructor to create the db instance.
      */
-    public MongoImp(String connectionString) {
+    public MongoImp() {
         CodecProvider codecProvider = PojoCodecProvider.builder().automatic(true).build();
         CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
                 MongoClientSettings.getDefaultCodecRegistry(),
                 CodecRegistries.fromProviders(codecProvider)
         );
 
-        settings = MongoClientSettings.builder()
+        StringBuilder builder = new StringBuilder();
+        builder.append(GtsMongo.config.isUseSRV() ? "mongodb+srv://" : "mongodb://");
+        if (!GtsMongo.config.getUsername().trim().isEmpty()) {
+            builder.append(GtsMongo.config.getUsername());
+        }
+        if (!GtsMongo.config.getPassword().trim().isEmpty()) {
+            builder.append(":").append(GtsMongo.config.getPassword());
+        }
+        if (!GtsMongo.config.getUsername().trim().isEmpty() || !GtsMongo.config.getPassword().trim().isEmpty()) {
+            builder.append("@");
+        }
+
+        builder.append(GtsMongo.config.getHost());
+
+        if (!GtsMongo.config.isUseSRV()) {
+            builder.append(":").append(GtsMongo.config.getPort());
+        }
+        builder.append("/");
+
+        MongoClientSettings settings = MongoClientSettings.builder()
                 .codecRegistry(codecRegistry)
-                .applyConnectionString(new ConnectionString(connectionString))
+                .applyConnectionString(new ConnectionString(builder.toString()))
                 .uuidRepresentation(UuidRepresentation.STANDARD)
                 .build();
+
+        mongoClient = MongoClients.create(settings);
+        mongoDatabase = mongoClient.getDatabase(GtsMongo.config.getDatabase());
     }
 
     /**
@@ -49,9 +74,7 @@ public class MongoImp {
      */
     public void add(String json, UUID id, Collection type) {
 
-        MongoClient mongoClient = MongoClients.create(settings);
-
-        MongoCollection<Document> collection = getCollection(mongoClient, type);
+        MongoCollection<Document> collection = getCollection(type);
 
         Document document = Document.parse(json);
         document.append("_id", id.toString());
@@ -70,9 +93,8 @@ public class MongoImp {
      * @return The document found.
      */
     public Document get(Collection type, UUID id) {
-        MongoClient mongoClient = MongoClients.create(settings);
 
-        MongoCollection<Document> collection = getCollection(mongoClient, type);
+        MongoCollection<Document> collection = getCollection(type);
 
         return collection.find(Filters.eq("id", id.toString())).first();
     }
@@ -84,9 +106,7 @@ public class MongoImp {
      */
     public void getAll(Collection type, Consumer<Document> consumer) {
 
-        MongoClient mongoClient = MongoClients.create(settings);
-
-        MongoCollection<Document> collection = getCollection(mongoClient, type);
+        MongoCollection<Document> collection = getCollection(type);
 
         collection.find().forEach(consumer);
     }
@@ -98,23 +118,19 @@ public class MongoImp {
      */
     public void delete(UUID id, Collection type) {
 
-        MongoClient mongoClient = MongoClients.create(settings);
-
-        MongoCollection<Document> collection = getCollection(mongoClient, type);
+        MongoCollection<Document> collection = getCollection(type);
 
         collection.deleteMany(Filters.eq("id", id.toString()));
     }
 
     /**
      * Fetches the given collection.
-     * @param client The mongoclient used to fetch the collection.
      * @param collection The collection to fetch.
      * @return The collection of documents.
      */
-    public MongoCollection<Document> getCollection(MongoClient client, Collection collection) {
-        MongoDatabase database = client.getDatabase(GtsMongo.db);
+    public MongoCollection<Document> getCollection(Collection collection) {
 
-        return database.getCollection(
+        return mongoDatabase.getCollection(
                 collection.equals(Collection.LISTING) ? GtsMongo.listingCollection : GtsMongo.historyCollection
         );
     }

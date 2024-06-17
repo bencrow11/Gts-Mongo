@@ -26,9 +26,7 @@ import java.util.UUID;
 public class HistoryListener implements Runnable {
     @Override
     public void run() {
-        MongoClient mongoClient = MongoClients.create(GtsMongo.mongo.settings);
-
-        MongoCollection<Document> history = GtsMongo.mongo.getCollection(mongoClient, Collection.HISTORY);
+        MongoCollection<Document> history = GtsMongo.mongo.getCollection(Collection.HISTORY);
 
         ChangeStreamIterable<Document> cursor = history.watch();
 

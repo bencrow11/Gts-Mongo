@@ -19,7 +19,9 @@ dependencies {
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
-    shadowCommon("org.mongodb:mongodb-driver-sync:5.1.1")
+    implementation(include("org.mongodb:mongodb-driver-sync:5.1.1"){transitive false})
+    implementation(include("org.mongodb:mongodb-driver-core:5.1.1"){transitive false})
+    implementation(include("org.mongodb:bson:5.1.1"){transitive false})
 }
 
 processResources {

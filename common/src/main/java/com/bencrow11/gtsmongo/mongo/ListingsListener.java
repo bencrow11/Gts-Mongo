@@ -25,9 +25,8 @@ import java.util.UUID;
 public class ListingsListener implements Runnable {
     @Override
     public void run() {
-        MongoClient mongoClient = MongoClients.create(GtsMongo.mongo.settings);
 
-        MongoCollection<Document> listings = GtsMongo.mongo.getCollection(mongoClient, Collection.LISTING);
+        MongoCollection<Document> listings = GtsMongo.mongo.getCollection(Collection.LISTING);
 
         ChangeStreamIterable<Document> cursor = listings.watch();
 
