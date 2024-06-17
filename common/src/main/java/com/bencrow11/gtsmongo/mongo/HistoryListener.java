@@ -5,8 +5,6 @@ import com.bencrow11.gtsmongo.types.Collection;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mongodb.client.ChangeStreamIterable;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.changestream.OperationType;
 import org.bson.Document;

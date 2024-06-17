@@ -4,8 +4,6 @@ import com.bencrow11.gtsmongo.GtsMongo;
 import com.bencrow11.gtsmongo.types.Collection;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
@@ -15,7 +13,6 @@ import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
