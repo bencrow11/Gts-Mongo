@@ -10,7 +10,9 @@ import org.pokesplash.gts.Listing.Listing;
 import org.pokesplash.gts.Listing.ListingsProvider;
 import org.pokesplash.gts.Listing.PokemonListing;
 import org.pokesplash.gts.util.Deserializer;
+import org.pokesplash.gts.util.Utils;
 
+import java.io.File;
 import java.util.Date;
 
 /**
@@ -39,5 +41,28 @@ public class MongoListingProvider extends ListingsProvider {
                 addExpiredListing(listing);
             }
         });
+    }
+
+    public static void migrateToMongo() {
+        File dir = Utils.checkForDirectory(Gts.LISTING_FILE_PATH);
+
+        String[] list = dir.list();
+
+        if (list.length != 0) {
+            for (String file : list) {
+                Utils.readFileAsync(Gts.LISTING_FILE_PATH, file, el -> {
+                    GsonBuilder builder = new GsonBuilder();
+                    // Type adapters help gson deserialize the listings interface.
+                    builder.registerTypeAdapter(Listing.class, new Deserializer(PokemonListing.class));
+                    builder.registerTypeAdapter(Listing.class, new Deserializer(ItemListing.class));
+                    Gson gson = builder.create();
+
+                    Listing listing = gson.fromJson(el, Listing.class);
+
+                    GtsMongo.mongo.add(el, listing.getId(), Collection.LISTING);
+                });
+            }
+        }
+
     }
 }

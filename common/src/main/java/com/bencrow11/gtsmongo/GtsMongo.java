@@ -5,6 +5,7 @@ import com.bencrow11.gtsmongo.hooks.MongoHistoryProvider;
 import com.bencrow11.gtsmongo.hooks.MongoListingImp;
 import com.bencrow11.gtsmongo.hooks.MongoListingProvider;
 import com.bencrow11.gtsmongo.mongo.MongoImp;
+import org.pokesplash.gts.Gts;
 import org.pokesplash.gts.api.provider.*;
 
 public class GtsMongo
@@ -28,6 +29,13 @@ public class GtsMongo
 		ListingAPI.add(Priority.LOW, new MongoListingImp());
 		HistoryProviderAPI.add(Priority.LOW, new MongoHistoryProvider());
 		HistoryAPI.add(Priority.LOW, new MongoHistoryItemImp());
+
+		if (config.isMigrateFromJson()) {
+			MongoListingProvider.migrateToMongo();
+			MongoHistoryProvider.migrateToMongo();
+			Gts.listings.init();
+			Gts.history.init();
+		}
 
 		if (config.isUseStreams()) {
 			mongo.runStreams();

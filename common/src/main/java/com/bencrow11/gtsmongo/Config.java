@@ -16,7 +16,8 @@ public class Config {
     private String password; // The password used to log in.
     private String database; // The database name to store gts stuff in.
     private boolean useSRV; // Should SRV be used.
-    private boolean useStreams; // Should the mod use change streams
+    private boolean useStreams; // Should the mod use change streams.
+    private boolean migrateFromJson; // Should json files be added to the db.
 
     /**
      * Constructor to create a default config file.
@@ -29,6 +30,7 @@ public class Config {
         database = "gts";
         useSRV = false;
         useStreams = true;
+        migrateFromJson = false;
     }
 
     /**
@@ -46,6 +48,7 @@ public class Config {
                     database = cfg.getDatabase();
                     useSRV = cfg.isUseSRV();
                     useStreams = cfg.isUseStreams();
+                    migrateFromJson = cfg.isMigrateFromJson();
                 });
 
         if (!futureRead.join()) {
@@ -69,9 +72,6 @@ public class Config {
         String data = gson.toJson(this);
         return Utils.writeFileAsync("/config/gtsmongo/", "config.json", data);
     }
-
-
-
 
     /**
      * Getters
@@ -103,6 +103,10 @@ public class Config {
 
     public boolean isUseStreams() {
         return useStreams;
+    }
+
+    public boolean isMigrateFromJson() {
+        return migrateFromJson;
     }
 }
 

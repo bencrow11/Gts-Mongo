@@ -7,7 +7,9 @@ import com.google.gson.GsonBuilder;
 import org.pokesplash.gts.Gts;
 import org.pokesplash.gts.history.*;
 import org.pokesplash.gts.util.Deserializer;
+import org.pokesplash.gts.util.Utils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -53,6 +55,42 @@ public class MongoHistoryProvider extends HistoryProvider {
 
         for (UUID uuid : items.keySet()) {
             super.history.put(uuid, new PlayerHistory(uuid, items.get(uuid)));
+        }
+    }
+
+    public static void migrateToMongo() {
+        File dir = Utils.checkForDirectory(filePath);
+
+        File[] files = dir.listFiles();
+
+        for (File file : files) {
+            File[] playerFiles = file.listFiles();
+
+            // For each file in the players directory
+            for (File playerFile : playerFiles) {
+                // If it is a file, try read it.
+                if (playerFile.isFile()) {
+                    Utils.readFileAsync(filePath + file.getName() + "/",
+                            playerFile.getName(), el -> {
+                                GsonBuilder builder = new GsonBuilder();
+                                // Type adapters help gson deserialize the listings interface.
+                                builder.registerTypeAdapter(HistoryItem.class, new Deserializer(PokemonHistoryItem.class));
+                                builder.registerTypeAdapter(HistoryItem.class, new Deserializer(ItemHistoryItem.class));
+                                Gson gson = builder.create();
+
+                                // Try parse the file to a history item.
+                                try {
+                                    HistoryItem item = gson.fromJson(el, HistoryItem.class);
+
+                                    GtsMongo.mongo.add(el, item.getId(), Collection.HISTORY);
+
+                                } catch (Exception e) {
+                                    Gts.LOGGER.error("Could not read player GTS History file for " + file.getName());
+                                    e.printStackTrace();
+                                }
+                            });
+                }
+            }
         }
     }
 }
