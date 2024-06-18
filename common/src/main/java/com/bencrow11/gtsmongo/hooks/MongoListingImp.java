@@ -27,8 +27,6 @@ public class MongoListingImp implements ListingInterface {
     @Override
     public void update(Listing listing) {
 
-        listing.setEndTime(-20);
-
         GtsMongo.mongo.replace(new Gson().toJson(listing), listing.getId(), Collection.LISTING);
     }
 }

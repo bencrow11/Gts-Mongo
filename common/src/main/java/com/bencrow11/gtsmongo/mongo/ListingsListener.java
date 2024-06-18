@@ -114,7 +114,8 @@ public class ListingsListener implements Runnable {
 
                         if (replacedDocument != null) {
 
-                            Listing activeReplacedListing = Gts.listings.getListingById(UUID.fromString(id));
+                            Listing activeReplacedListing = Gts.listings.getActiveListingById(UUID.fromString(id));
+
                             Listing expiredReplacedListing = Gts.listings.getExpiredListingById(UUID.fromString(id));
 
                             if (activeReplacedListing != null) {
