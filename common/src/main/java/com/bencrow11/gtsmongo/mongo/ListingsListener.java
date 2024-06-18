@@ -108,6 +108,42 @@ public class ListingsListener implements Runnable {
 
                         break;
 
+                    case REPLACE:
+
+                        Document replacedDocument = GtsMongo.mongo.get(Collection.LISTING, UUID.fromString(id));
+
+                        if (replacedDocument != null) {
+
+                            Listing activeReplacedListing = Gts.listings.getListingById(UUID.fromString(id));
+                            Listing expiredReplacedListing = Gts.listings.getExpiredListingById(UUID.fromString(id));
+
+                            if (activeReplacedListing != null) {
+                                Gts.listings.removeListing(activeReplacedListing);
+                            }
+
+                            if (expiredReplacedListing != null) {
+                                Gts.listings.removeExpiredListing(expiredReplacedListing);
+                            }
+
+                            Listing replacedListing  = gson.fromJson(replacedDocument.toJson(), Listing.class);
+
+                            replacedListing = replacedListing.isPokemon() ? gson.fromJson(replacedDocument.toJson(), PokemonListing.class) :
+                                    gson.fromJson(replacedDocument.toJson(), ItemListing.class);
+
+                            if (replacedListing.getEndTime() > new Date().getTime()) {
+
+                                Gts.listings.addListing(replacedListing);
+
+                            } else {
+
+                                Gts.listings.addExpiredListing(replacedListing);
+                            }
+
+
+                        }
+
+                        break;
+
                     default:
 
                         Gts.LOGGER.error("Operation type " + e.getOperationTypeString() +

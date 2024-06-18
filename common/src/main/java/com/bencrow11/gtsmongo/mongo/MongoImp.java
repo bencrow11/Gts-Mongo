@@ -84,6 +84,22 @@ public class MongoImp {
     }
 
     /**
+     * Method used to replace a document with another using the same ID.
+     * @param json The JSON to replace the other document with.
+     * @param id The ID of the document to be replaced.
+     * @param type The collection type.
+     */
+    public void replace(String json, UUID id, Collection type) {
+        Document document = get(type, id);
+
+        if (document != null) {
+            MongoCollection<Document> collection = getCollection(type);
+
+            collection.replaceOne(Filters.eq("id", id.toString()), Document.parse(json));
+        }
+    }
+
+    /**
      * Gets a document from db using the collection and id specified.
      * @param type The collection to fetch from.
      * @param id The ID of the document to fetch.
