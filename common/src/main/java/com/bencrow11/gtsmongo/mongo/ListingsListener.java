@@ -14,6 +14,7 @@ import org.pokesplash.gts.Listing.PokemonListing;
 import org.pokesplash.gts.util.Deserializer;
 import org.pokesplash.gts.util.Utils;
 
+import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -45,11 +46,15 @@ public class ListingsListener implements Runnable {
 
                         Document deletedDocument = GtsMongo.mongo.get(Collection.LISTING, UUID.fromString(id));
 
-                        Listing deletedListing = Gts.listings.findListingById(UUID.fromString(id));
+                        Listing deletedActiveListing = Gts.listings.getActiveListingById(UUID.fromString(id));
+                        Listing deletedExpiredListing = Gts.listings.getExpiredListingById(UUID.fromString(id));
 
                         // If the document has been deleted from db but not from memory
-                        if (deletedDocument == null && deletedListing != null) {
-                            Gts.listings.removeListing(deletedListing);
+                        if (deletedDocument == null && deletedActiveListing != null) {
+                            Gts.listings.removeListing(deletedActiveListing);
+
+                        } else if (deletedDocument == null && deletedExpiredListing != null) {
+                            Gts.listings.removeExpiredListing(deletedExpiredListing);
                         }
 
                         break;
@@ -58,7 +63,7 @@ public class ListingsListener implements Runnable {
 
                         Document addedDocument = GtsMongo.mongo.get(Collection.LISTING, UUID.fromString(id));
 
-                        Listing addedListing = Gts.listings.findListingById(UUID.fromString(id));
+                        Listing addedListing = Gts.listings.getListingById(UUID.fromString(id));
 
                         // If the document has been added to db but not in memory.
                         if (addedDocument != null && addedListing == null) {
@@ -68,31 +73,37 @@ public class ListingsListener implements Runnable {
                             addedListing = addedListing.isPokemon() ? gson.fromJson(addedDocument.toJson(), PokemonListing.class) :
                                     gson.fromJson(addedDocument.toJson(), ItemListing.class);
 
-                            Gts.listings.addListing(addedListing);
 
-                            // Broadcast the new listing on the server.
-                            if (Gts.config.isBroadcastListings()) {
 
-                                if (addedListing.isPokemon()) {
+                            if (addedListing.getEndTime() > new Date().getTime()) {
+                                Gts.listings.addListing(addedListing);
 
-                                    PokemonListing pokemonListing = gson.fromJson(addedDocument.toJson(), PokemonListing.class);
+                                // Broadcast the new listing on the server.
+                                if (Gts.config.isBroadcastListings()) {
 
-                                    Utils.broadcastClickable(Utils.formatPlaceholders(Gts.language.getNewListingBroadcast(),
-                                                    0, pokemonListing.getListing().getDisplayName().getString(),
-                                                    pokemonListing.getSellerName(), null),
-                                            "/gts " + pokemonListing.getId());
-                                } else {
+                                    if (addedListing.isPokemon()) {
 
-                                    ItemListing itemListing = gson.fromJson(addedDocument.toJson(), ItemListing.class);
+                                        PokemonListing pokemonListing = gson.fromJson(addedDocument.toJson(), PokemonListing.class);
 
-                                    Utils.broadcastClickable(Utils.formatPlaceholders(Gts.language.getNewListingBroadcast(),
-                                                    0, itemListing.getListing().getDisplayName().getString(),
-                                                    itemListing.getSellerName(), null),
-                                            "/gts " + itemListing.getId());
+                                        Utils.broadcastClickable(Utils.formatPlaceholders(Gts.language.getNewListingBroadcast(),
+                                                        0, pokemonListing.getListing().getDisplayName().getString(),
+                                                        pokemonListing.getSellerName(), null),
+                                                "/gts " + pokemonListing.getId());
+                                    } else {
+
+                                        ItemListing itemListing = gson.fromJson(addedDocument.toJson(), ItemListing.class);
+
+                                        Utils.broadcastClickable(Utils.formatPlaceholders(Gts.language.getNewListingBroadcast(),
+                                                        0, itemListing.getListing().getDisplayName().getString(),
+                                                        itemListing.getSellerName(), null),
+                                                "/gts " + itemListing.getId());
+                                    }
                                 }
-
-
+                            } else {
+                                Gts.listings.addExpiredListing(addedListing);
                             }
+
+
                         }
 
                         break;
