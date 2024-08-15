@@ -36,7 +36,6 @@ public class MongoListingProvider extends ListingsProvider {
             if (listing.getEndTime() > new Date().getTime() ||
                     listing.getEndTime() == -1) {
                 listings.add(listing);
-                Gts.timers.addTimer(listing);
             } else {
                 addExpiredListing(listing);
             }
