@@ -1,6 +1,7 @@
-package com.bencrow11.gtsmongo.hooks;
+package com.bencrow11.gtsmongo.hooks.streams;
 
 import com.bencrow11.gtsmongo.GtsMongo;
+import com.bencrow11.gtsmongo.hooks.Migration;
 import com.bencrow11.gtsmongo.types.Collection;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -17,7 +18,7 @@ import java.util.UUID;
 /**
  * Implementation of history provider to read files from database rather than file.
  */
-public class MongoHistoryProvider extends HistoryProvider {
+public class StreamsMongoHistoryProvider extends HistoryProvider implements Migration {
     @Override
     public void init() {
 
@@ -58,7 +59,8 @@ public class MongoHistoryProvider extends HistoryProvider {
         }
     }
 
-    public static void migrateToMongo() {
+    @Override
+    public void migrateToMongo() {
         File dir = Utils.checkForDirectory(filePath);
 
         File[] files = dir.listFiles();

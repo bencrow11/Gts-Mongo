@@ -1,6 +1,8 @@
 package com.bencrow11.gtsmongo.mongo;
 
 import com.bencrow11.gtsmongo.GtsMongo;
+import com.bencrow11.gtsmongo.mongo.streams.HistoryListener;
+import com.bencrow11.gtsmongo.mongo.streams.ListingsListener;
 import com.bencrow11.gtsmongo.types.Collection;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -34,28 +36,9 @@ public class MongoImp {
                 CodecRegistries.fromProviders(codecProvider)
         );
 
-        StringBuilder builder = new StringBuilder();
-        builder.append(GtsMongo.config.isUseSRV() ? "mongodb+srv://" : "mongodb://");
-        if (!GtsMongo.config.getUsername().trim().isEmpty()) {
-            builder.append(GtsMongo.config.getUsername());
-        }
-        if (!GtsMongo.config.getPassword().trim().isEmpty()) {
-            builder.append(":").append(GtsMongo.config.getPassword());
-        }
-        if (!GtsMongo.config.getUsername().trim().isEmpty() || !GtsMongo.config.getPassword().trim().isEmpty()) {
-            builder.append("@");
-        }
-
-        builder.append(GtsMongo.config.getHost());
-
-        if (!GtsMongo.config.isUseSRV()) {
-            builder.append(":").append(GtsMongo.config.getPort());
-        }
-        builder.append("/");
-
         MongoClientSettings settings = MongoClientSettings.builder()
                 .codecRegistry(codecRegistry)
-                .applyConnectionString(new ConnectionString(builder.toString()))
+                .applyConnectionString(new ConnectionString(GtsMongo.config.getConnectionString()))
                 .uuidRepresentation(UuidRepresentation.STANDARD)
                 .build();
 
@@ -110,6 +93,39 @@ public class MongoImp {
         MongoCollection<Document> collection = getCollection(type);
 
         return collection.find(Filters.eq("id", id.toString())).first();
+    }
+
+    /**
+     * Finds all documents with a specified field and value.
+     * @param type The collection to fetch the documents from.
+     * @param fieldName The name of the field to search for.
+     * @param fieldValue The value for the field with the previously given name.
+     * @param consumer Callback to process the documents.
+     */
+    public <T> void getAllWithField(Collection type, String fieldName, T fieldValue, Consumer<Document> consumer) {
+        MongoCollection<Document> collection = getCollection(type);
+
+        collection.find(Filters.eq(fieldName, fieldValue)).forEach(consumer);
+    }
+
+    /**
+     * Finds all documents with a specified field and value.
+     * @param type The collection to fetch the documents from.
+     * @param fieldName The name of the field to search for.
+     * @param fieldValue The value for the field with the previously given name.
+     * @param consumer Callback to process the documents.
+     */
+    public <T, V> void getAllWithTwoField(Collection type,
+                                          String firstFieldName, T firstFieldValue,
+                                          String secondFieldName, V secondFieldValue,
+                                          Consumer<Document> consumer) {
+        MongoCollection<Document> collection = getCollection(type);
+
+        collection.find(
+                Filters.and(Filters.eq(firstFieldName, firstFieldValue),
+                Filters.eq(secondFieldName, secondFieldValue)))
+                .forEach(consumer);
+        ;
     }
 
     /**

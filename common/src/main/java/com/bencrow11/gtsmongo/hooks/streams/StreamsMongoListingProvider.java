@@ -1,6 +1,7 @@
-package com.bencrow11.gtsmongo.hooks;
+package com.bencrow11.gtsmongo.hooks.streams;
 
 import com.bencrow11.gtsmongo.GtsMongo;
+import com.bencrow11.gtsmongo.hooks.Migration;
 import com.bencrow11.gtsmongo.types.Collection;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -18,7 +19,8 @@ import java.util.Date;
 /**
  * Implementation of listing provider that overrides method to read listings from db rather than file.
  */
-public class MongoListingProvider extends ListingsProvider {
+public class StreamsMongoListingProvider extends ListingsProvider implements Migration {
+
     @Override
     public void init() {
         GtsMongo.mongo.getAll(Collection.LISTING, el -> {
@@ -42,7 +44,8 @@ public class MongoListingProvider extends ListingsProvider {
         });
     }
 
-    public static void migrateToMongo() {
+    @Override
+    public void migrateToMongo() {
         File dir = Utils.checkForDirectory(Gts.LISTING_FILE_PATH);
 
         String[] list = dir.list();

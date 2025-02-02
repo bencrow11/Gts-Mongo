@@ -1,4 +1,4 @@
-package com.bencrow11.gtsmongo.mongo;
+package com.bencrow11.gtsmongo.mongo.streams;
 
 import com.bencrow11.gtsmongo.GtsMongo;
 import com.bencrow11.gtsmongo.types.Collection;
