@@ -78,7 +78,6 @@ public class StreamlessMongoListingProvider extends ListingsProvider implements 
             if (listing.getEndTime() > new Date().getTime()) {
                 listings.add(listing);
             }
-            listings.add(listing);
         });
         return listings;
     }

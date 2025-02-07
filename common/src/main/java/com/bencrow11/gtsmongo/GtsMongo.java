@@ -38,9 +38,6 @@ public class GtsMongo
 			HistoryProviderAPI.add(Priority.LOW, new StreamlessMongoHistoryProvider());
 		}
 
-
-
-
 		if (config.isMigrateFromJson()) {
 			new StreamsMongoListingProvider().migrateToMongo();
 			new StreamsMongoHistoryProvider().migrateToMongo();

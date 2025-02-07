@@ -22,8 +22,8 @@ import java.util.function.Consumer;
  * Class used to implement methods to read / write to the mongoDB database.
  */
 public class MongoImp {
-    private final MongoClient mongoClient;
-    private final MongoDatabase mongoDatabase;
+    private MongoDatabase mongoDatabase;
+    private MongoClient client;
 
 
     /**
@@ -36,14 +36,19 @@ public class MongoImp {
                 CodecRegistries.fromProviders(codecProvider)
         );
 
-        MongoClientSettings settings = MongoClientSettings.builder()
-                .codecRegistry(codecRegistry)
-                .applyConnectionString(new ConnectionString(GtsMongo.config.getConnectionString()))
-                .uuidRepresentation(UuidRepresentation.STANDARD)
-                .build();
+        try {
+            MongoClientSettings settings = MongoClientSettings.builder()
+                    .codecRegistry(codecRegistry)
+                    .applyConnectionString(new ConnectionString(GtsMongo.config.getConnectionString()))
+                    .uuidRepresentation(UuidRepresentation.STANDARD)
+                    .build();
 
-        mongoClient = MongoClients.create(settings);
-        mongoDatabase = mongoClient.getDatabase(GtsMongo.config.getDatabase());
+            client = MongoClients.create(settings);
+            mongoDatabase = client.getDatabase(GtsMongo.config.getDatabase());
+        } catch (Exception e) {
+            System.out.println("An error occurred with GtsMongo:");
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -54,15 +59,20 @@ public class MongoImp {
      */
     public void add(String json, UUID id, Collection type) {
 
-        MongoCollection<Document> collection = getCollection(type);
+        try {
+            MongoCollection<Document> collection = getCollection(type);
 
-        Document document = Document.parse(json);
-        document.append("_id", id.toString());
+            Document document = Document.parse(json);
+            document.append("_id", id.toString());
 
-        MongoCursor<Document> iterator = collection.find(Filters.eq("id", id.toString())).iterator();
+            MongoCursor<Document> iterator = collection.find(Filters.eq("id", id.toString())).iterator();
 
-        if (!iterator.hasNext()) {
-            collection.insertOne(document);
+            if (!iterator.hasNext()) {
+                collection.insertOne(document);
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred with GtsMongo:");
+            e.printStackTrace();
         }
     }
 
@@ -73,12 +83,17 @@ public class MongoImp {
      * @param type The collection type.
      */
     public void replace(String json, UUID id, Collection type) {
-        Document document = get(type, id);
+        try {
+            Document document = get(type, id);
 
-        if (document != null) {
-            MongoCollection<Document> collection = getCollection(type);
+            if (document != null) {
+                MongoCollection<Document> collection = getCollection(type);
 
-            collection.replaceOne(Filters.eq("id", id.toString()), Document.parse(json));
+                collection.replaceOne(Filters.eq("id", id.toString()), Document.parse(json));
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred with GtsMongo:");
+            e.printStackTrace();
         }
     }
 
@@ -90,9 +105,15 @@ public class MongoImp {
      */
     public Document get(Collection type, UUID id) {
 
-        MongoCollection<Document> collection = getCollection(type);
+        try {
+            MongoCollection<Document> collection = getCollection(type);
 
-        return collection.find(Filters.eq("id", id.toString())).first();
+            return collection.find(Filters.eq("id", id.toString())).first();
+        } catch (Exception e) {
+            System.out.println("An error occurred with GtsMongo:");
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -103,29 +124,42 @@ public class MongoImp {
      * @param consumer Callback to process the documents.
      */
     public <T> void getAllWithField(Collection type, String fieldName, T fieldValue, Consumer<Document> consumer) {
-        MongoCollection<Document> collection = getCollection(type);
+        try {
+            MongoCollection<Document> collection = getCollection(type);
 
-        collection.find(Filters.eq(fieldName, fieldValue)).forEach(consumer);
+            collection.find(Filters.eq(fieldName, fieldValue)).forEach(consumer);
+        } catch (Exception e) {
+            System.out.println("An error occurred with GtsMongo:");
+            e.printStackTrace();
+        }
     }
 
     /**
-     * Finds all documents with a specified field and value.
-     * @param type The collection to fetch the documents from.
-     * @param fieldName The name of the field to search for.
-     * @param fieldValue The value for the field with the previously given name.
-     * @param consumer Callback to process the documents.
+     *
+     * @param type
+     * @param firstFieldName
+     * @param firstFieldValue
+     * @param secondFieldName
+     * @param secondFieldValue
+     * @param consumer
+     * @param <T>
+     * @param <V>
      */
     public <T, V> void getAllWithTwoField(Collection type,
                                           String firstFieldName, T firstFieldValue,
                                           String secondFieldName, V secondFieldValue,
                                           Consumer<Document> consumer) {
-        MongoCollection<Document> collection = getCollection(type);
+        try {
+            MongoCollection<Document> collection = getCollection(type);
 
-        collection.find(
-                Filters.and(Filters.eq(firstFieldName, firstFieldValue),
-                Filters.eq(secondFieldName, secondFieldValue)))
-                .forEach(consumer);
-        ;
+            collection.find(
+                            Filters.and(Filters.eq(firstFieldName, firstFieldValue),
+                                    Filters.eq(secondFieldName, secondFieldValue)))
+                    .forEach(consumer);
+        } catch (Exception e) {
+            System.out.println("An error occurred with GtsMongo:");
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -135,9 +169,14 @@ public class MongoImp {
      */
     public void getAll(Collection type, Consumer<Document> consumer) {
 
-        MongoCollection<Document> collection = getCollection(type);
+        try {
+            MongoCollection<Document> collection = getCollection(type);
 
-        collection.find().forEach(consumer);
+            collection.find().forEach(consumer);
+        } catch (Exception e) {
+            System.out.println("An error occurred with GtsMongo:");
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -147,9 +186,14 @@ public class MongoImp {
      */
     public void delete(UUID id, Collection type) {
 
-        MongoCollection<Document> collection = getCollection(type);
+        try {
+            MongoCollection<Document> collection = getCollection(type);
 
-        collection.deleteMany(Filters.eq("id", id.toString()));
+            collection.deleteMany(Filters.eq("id", id.toString()));
+        } catch (Exception e) {
+            System.out.println("An error occurred with GtsMongo:");
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -159,21 +203,45 @@ public class MongoImp {
      */
     public MongoCollection<Document> getCollection(Collection collection) {
 
-        return mongoDatabase.getCollection(
-                collection.equals(Collection.LISTING) ? GtsMongo.listingCollection : GtsMongo.historyCollection
-        );
+        try {
+            return mongoDatabase.getCollection(
+                    collection.equals(Collection.LISTING) ? GtsMongo.listingCollection : GtsMongo.historyCollection
+            );
+        } catch (Exception e) {
+            System.out.println("An error occurred with GtsMongo:");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void closeConnection() {
+        Thread.getAllStackTraces().keySet().forEach(thread ->
+        {
+            if (thread.getName().equalsIgnoreCase("mongo-listings-listener") ||
+                    thread.getName().equalsIgnoreCase("mongo-history-listener")) {
+                try {
+                    thread.interrupt();
+                } catch (Exception e) {}
+            }
+        });
+        client.close();
     }
 
     /**
      * Runs the listeners to sync servers.
      */
     public void runStreams() {
-        Runnable listingsListener = new ListingsListener();
-        Thread listingsThread = new Thread(listingsListener, "mongo-listings-listener");
-        listingsThread.start();
+        try {
+            Runnable listingsListener = new ListingsListener();
+            Thread listingsThread = new Thread(listingsListener, "mongo-listings-listener");
+            listingsThread.start();
 
-        Runnable historyListener = new HistoryListener();
-        Thread historyThread = new Thread(historyListener, "mongo-history-listener");
-        historyThread.start();
+            Runnable historyListener = new HistoryListener();
+            Thread historyThread = new Thread(historyListener, "mongo-history-listener");
+            historyThread.start();
+        } catch (Exception e) {
+            System.out.println("An error occurred with GtsMongo:");
+            e.printStackTrace();
+        }
     }
 }
